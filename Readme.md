@@ -54,7 +54,11 @@ Delphi 10.4.2 以降で AmazonURLShorter.dproj を開きます。
 
 #### Windows 起動時に起動
 
-チェックすると Windows 起動時に自動的に起動します。
+チェックすると Windows 起動時に自動的に起動します。  
+
+## 既知の問題点
+
+Final Fantasy XIV などのチート対策が入っていると思われるゲームがあると上手く動作しません！  
 
 # Contact
 freeonterminate@gmail.com  
