@@ -1,10 +1,10 @@
-﻿#Amazon URL Shorter
+﻿# Amazon URL Shorter
 
-##概要
+## 概要
 
 Amazon の長い URL をクリップボード格納時に自動的に短くします。
 
-##開発環境
+## 開発環境
 
 | Item        | Description         |
 |-------------|---------------------|
@@ -13,11 +13,11 @@ Amazon の長い URL をクリップボード格納時に自動的に短くし�
 | Framework   | FireMonkey          |
 | Support OS  | Windows             |
 
-##履歴
+## 履歴
 
 2021/05/15  1.00 リリース
 
-##使い方
+## 使い方
 
 AmazonURLShorter.dproj を開きます。
 ターゲットを Win 64 にして、ビルドします。
@@ -46,11 +46,11 @@ AmazonURLShorter.dproj を開きます。
 
 チェックすると Windows 起動時に自動的に起動します。
 
-##Contact
+# Contact
 freeonterminate@gmail.com  
 http://twitter.com/pik  
       
-#LICENSE
+# LICENSE
 Copyright (c) 2021 HOSOKAWA Jun
 Released under the MIT license  
 http://opensource.org/licenses/mit-license.php
