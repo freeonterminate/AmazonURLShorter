@@ -1,0 +1,85 @@
+object frmInfoWindow: TfrmInfoWindow
+  Left = 0
+  Top = 0
+  BorderIcons = [biSystemMenu, biMaximize]
+  Caption = 'Log'
+  ClientHeight = 480
+  ClientWidth = 640
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  OnClose = FormClose
+  DesignerMasterStyle = 0
+  object memoLog: TMemo
+    Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+    DataDetectorTypes = []
+    ReadOnly = True
+    StyledSettings = [Style, FontColor]
+    TextSettings.Font.Family = #65325#65331' '#12468#12471#12483#12463
+    TextSettings.Font.Size = 16.000000000000000000
+    Align = Client
+    Size.Width = 640.000000000000000000
+    Size.Height = 432.000000000000000000
+    Size.PlatformDefault = False
+    StyleLookup = 'memonoeffectstyle'
+    TabOrder = 0
+    Viewport.Width = 636.000000000000000000
+    Viewport.Height = 428.000000000000000000
+  end
+  object layoutButtonBase: TLayout
+    Align = Bottom
+    Padding.Left = 8.000000000000000000
+    Padding.Top = 8.000000000000000000
+    Padding.Right = 8.000000000000000000
+    Padding.Bottom = 12.000000000000000000
+    Position.Y = 432.000000000000000000
+    Size.Width = 640.000000000000000000
+    Size.Height = 48.000000000000000000
+    Size.PlatformDefault = False
+    TabOrder = 1
+    object btnClear: TButton
+      Align = Left
+      Margins.Right = 8.000000000000000000
+      Position.X = 8.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      Text = '&Clear...'
+      OnClick = btnClearClick
+    end
+    object btnSave: TButton
+      Align = Left
+      Margins.Right = 8.000000000000000000
+      Position.X = 136.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 1
+      Text = '&Save...'
+      OnClick = btnSaveClick
+    end
+    object btnClose: TButton
+      Align = Right
+      Cancel = True
+      Default = True
+      Position.X = 512.000000000000000000
+      Position.Y = 8.000000000000000000
+      Size.Width = 120.000000000000000000
+      Size.Height = 28.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 2
+      Text = 'C&lose'
+      OnApplyStyleLookup = btnCloseApplyStyleLookup
+      OnClick = btnCloseClick
+    end
+  end
+  object dlgSave: TSaveDialog
+    DefaultExt = '.txt'
+    Filter = '*.txt|*.txt|All|*.*'
+    Left = 176
+    Top = 136
+  end
+end
