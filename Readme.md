@@ -19,7 +19,13 @@ Amazon の長い URL をクリップボード格納時に自動的に短くし�
 
 ## 使い方
 
-AmazonURLShorter.dproj を開きます。
+### 実行ファイル
+
+https://github.com/freeonterminate/AmazonURLShorter/releases/download/v1.0.0/AmaS_1_0_0.zip
+
+### ビルド方法
+
+Delphi 10.4.2 以降で AmazonURLShorter.dproj を開きます。
 ターゲットを Win 64 にして、ビルドします。
 実行するとタスクトレイに常駐します。
 
