@@ -9,12 +9,11 @@ uses
   uInfoWindow in 'uInfoWindow.pas' {frmInfoWindow},
   uIniManager in 'uIniManager.pas',
   uLangModule in 'uLangModule.pas' {moduleLang: TDataModule},
+  PK.AutoRun in 'Lib\AutoRun\PK.AutoRun.Pas',
   PK.Clipboard.Watcher in 'Lib\Clipboard\Watcher\PK.Clipboard.Watcher.pas',
-  PK.Fix.PopupForm in 'Lib\Fix\PK.Fix.PopupForm.pas',
   PK.Net.Amazon in 'Lib\Net\PK.Net.Amazon.pas',
   PK.TrayIcon in 'Lib\TrayIcon\PK.TrayIcon.pas',
   PK.Utils.Application in 'Lib\Utils\PK.Utils.Application.pas',
-  PK.AutoRun in 'Lib\AutoRun\PK.AutoRun.Pas',
   PK.Utils.Browser in 'Lib\Utils\PK.Utils.Browser.pas',
   PK.Utils.DateTime in 'Lib\Utils\PK.Utils.DateTime.pas',
   PK.Utils.Dialogs in 'Lib\Utils\PK.Utils.Dialogs.pas',
@@ -35,7 +34,7 @@ begin
     try
       Application.Initialize;
       Application.CreateForm(TfmmMain, fmmMain);
-  Application.Run;
+      Application.Run;
     finally
       UnregisterInstance;
     end;

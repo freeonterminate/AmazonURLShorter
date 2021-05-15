@@ -288,12 +288,11 @@
             <Form>moduleLang</Form>
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
+        <DCCReference Include="Lib\AutoRun\PK.AutoRun.Pas"/>
         <DCCReference Include="Lib\Clipboard\Watcher\PK.Clipboard.Watcher.pas"/>
-        <DCCReference Include="Lib\Fix\PK.Fix.PopupForm.pas"/>
         <DCCReference Include="Lib\Net\PK.Net.Amazon.pas"/>
         <DCCReference Include="Lib\TrayIcon\PK.TrayIcon.pas"/>
         <DCCReference Include="Lib\Utils\PK.Utils.Application.pas"/>
-        <DCCReference Include="Lib\AutoRun\PK.AutoRun.Pas"/>
         <DCCReference Include="Lib\Utils\PK.Utils.Browser.pas"/>
         <DCCReference Include="Lib\Utils\PK.Utils.DateTime.pas"/>
         <DCCReference Include="Lib\Utils\PK.Utils.Dialogs.pas"/>
