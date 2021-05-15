@@ -2,7 +2,7 @@
 
 ## 概要
 
-Amazon の長い URL をクリップボード格納時に自動的に短くします。
+Amazon の長い URL をクリップボード格納時に自動的に短くします。  
 
 ## 開発環境
 
@@ -19,34 +19,35 @@ Amazon の長い URL をクリップボード格納時に自動的に短くし�
 
 ## 実行ファイル
 
-https://github.com/freeonterminate/AmazonURLShorter/releases/download/v1.0.0/AmaS_1_0_0.zip
+実行ファイルは下記にあります。
+https://github.com/freeonterminate/AmazonURLShorter/releases/download/v1.0.0/
 
 ## ビルド方法
 
-Delphi 10.4.2 以降で AmazonURLShorter.dproj を開きます。
-ターゲットを Win 64 にして、ビルドします。
-実行するとタスクトレイに常駐します。
+Delphi 10.4.2 以降で AmazonURLShorter.dproj を開きます。  
+ターゲットを Win 64 にして、ビルドします。  
+実行するとタスクトレイに常駐します。  
 
 ## 使い方
 
 #### コピー
 
-クリップボードに Amazon の URL がコピーされた時、自動的に短くします。
-短くした URL と商品名は自動的にタスクトレイのポップアップメニューに追加されます。
-メニューを選ぶとクリップボードにその URL が入ります。
-また、Ctrl を押しながらメニューを選ぶとブラウザで商品ページを開きます。
+クリップボードに Amazon の URL がコピーされた時、自動的に短くします。  
+短くした URL と商品名は自動的にタスクトレイのポップアップメニューに追加されます。  
+メニューを選ぶとクリップボードにその URL が入ります。  
+また、Ctrl を押しながらメニューを選ぶとブラウザで商品ページを開きます。  
 
 #### 設定
 
-メニュー選択時の動作を決められます
+メニュー選択時の動作を決められます  
 
 * クリップボードにコピー（デフォルト）
 * ブラウザを開く
 
 #### 履歴の数
 
-メニューに追加する履歴の最大数を指定します。
-最大を超えると古い順にメニューから削除されます。
+メニューに追加する履歴の最大数を指定します。  
+最大を超えると古い順にメニューから削除されます。  
 
 #### Windows 起動時に起動
 
@@ -57,6 +58,6 @@ freeonterminate@gmail.com
 http://twitter.com/pik  
       
 # LICENSE
-Copyright (c) 2021 HOSOKAWA Jun
+Copyright (c) 2021 HOSOKAWA Jun  
 Released under the MIT license  
-http://opensource.org/licenses/mit-license.php
+http://opensource.org/licenses/mit-license.php  
