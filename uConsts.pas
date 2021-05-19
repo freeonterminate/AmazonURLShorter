@@ -65,8 +65,9 @@ type
     TITLE_S_LEN = Length(TITLE_S);
     TITLE_MAX_LEN = 32;
 
-    STARTS_WITH: array [0.. 2] of String = (
+    STARTS_WITH: array [0.. 3] of String = (
       'Amazon |',
+      'Amazon｜',
       'Amazon.co.jp:',
       'Amazon.co.jp：'
     );
@@ -74,6 +75,8 @@ type
 
   TMessageConsts = record
   private const
+    // Language ID
+    LANG_JA = 'ja';
     // English
     EN_HISTORY_CLEAR =
       'Do you want to delete the URL history?' + sLineBreak +
@@ -108,8 +111,6 @@ uses
 { TMessageConsts }
 
 class procedure TMessageConsts.Init;
-const
-  LANG_JA = 'ja';
 begin
   var LangId := '';
 

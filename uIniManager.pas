@@ -43,6 +43,7 @@ type
     procedure SetItems(const iIndex: Integer; const iValue: TURLInfo);
     function GetAutoRun: Boolean;
     procedure SetAutoRun(const Value: Boolean);
+    procedure SetMaxCount(const Value: Integer);
   public
     constructor Create; reintroduce;
     destructor Destroy; override;
@@ -50,7 +51,7 @@ type
     procedure Save;
     procedure Clear;
     property Debug: Boolean read FDebug;
-    property MaxCount: Integer read FMaxCount write FMaxCount;
+    property MaxCount: Integer read FMaxCount write SetMaxCount;
     property ActionType: TActionType read FActionType write FActionType;
     property AutoRun: Boolean read GetAutoRun write SetAutoRun;
     property Count: Integer read GetCount;
@@ -258,6 +259,17 @@ begin
   end;
 
   FItems[Index] := iValue;
+end;
+
+procedure TIniManager.SetMaxCount(const Value: Integer);
+begin
+  if FMaxCount = Value then
+    Exit;
+
+  FMaxCount := Value;
+
+  if GetCount - FMaxCount > 0 then
+    SetLength(FItems, FMaxCount);
 end;
 
 end.
