@@ -25,7 +25,7 @@ Amazon の長い URL をクリップボード格納時に自動的に短くし�
 解凍すると AmazonURLShorter.exe が展開されるので適当な場所に保存して実行して下さい。  
 exe ファイルがそのまま入っているので、解凍出来ない場合は解凍ソフトの設定を、実行できない場合は Windows の設定を確認してください。
 
-https://github.com/freeonterminate/AmazonURLShorter/releases/tag/v1.0.1
+https://github.com/freeonterminate/AmazonURLShorter/releases/tag/v1.0.2
 
 ## ビルド方法
 
