@@ -11,6 +11,8 @@ uses
   uLangModule in 'uLangModule.pas' {moduleLang: TDataModule},
   PK.AutoRun in 'Lib\AutoRun\PK.AutoRun.Pas',
   PK.Clipboard.Watcher in 'Lib\Clipboard\Watcher\PK.Clipboard.Watcher.pas',
+  PK.GUI.NativePopupMenu.Win in 'Lib\GUI\PK.GUI.NativePopupMenu.Win.pas',
+  PK.GUI.DarkMode.Win in 'Lib\GUI\PK.GUI.DarkMode.Win.pas',
   PK.Net.Amazon in 'Lib\Net\PK.Net.Amazon.pas',
   PK.TrayIcon in 'Lib\TrayIcon\PK.TrayIcon.pas',
   PK.Utils.Application in 'Lib\Utils\PK.Utils.Application.pas',

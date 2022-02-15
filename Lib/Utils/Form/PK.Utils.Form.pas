@@ -203,10 +203,10 @@ begin
     if D.Primary then
     begin
       var R := D.WorkArea;
-      var X := R.Left + (R.Width - iForm.Width) div 2;
-      var Y := R.Top + (R.Height - iForm.Height) div 2;
+      var X := R.Left + (R.Width - iForm.Width) / 2;
+      var Y := R.Top + (R.Height - iForm.Height) / 2;
 
-      iForm.SetBounds(X, Y, iForm.Width, iForm.Height);
+      iForm.SetBoundsF(X, Y, iForm.Width, iForm.Height);
 
       Break;
     end;

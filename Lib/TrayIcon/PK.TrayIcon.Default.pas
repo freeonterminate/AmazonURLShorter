@@ -39,7 +39,7 @@ interface
 uses
   System.Classes
   , FMX.Graphics
-  , FMX.Types
+  , FMX.Menus
   ;
 
 type
@@ -47,16 +47,30 @@ type
     ['{052926DE-A337-4CC0-A9E1-0B1C3EF5FCA2}']
     procedure Apply;
     procedure ApplyGUID(const iGUID: TGUID);
+    procedure AssignPopupMenu(const iPopup: TPopupMenu);
     procedure AddMenu(
       const iName: String;
-      const iData: Pointer;
-      const iEvent: TNotifyEvent);
-    procedure EnableMenu(const iName: String; const iEnabled: Boolean);
-    procedure ClearMenus;
-    procedure RegisterOnClick(const iEvent: TMouseEvent);
+      const iEvent: TNotifyEvent); deprecated;
+    procedure EnableMenu(
+      const iName: String;
+      const iEnabled: Boolean); deprecated;
+    procedure RegisterOnClick(const iEvent: TNotifyEvent);
     procedure RegisterIcon(const iName: String; const iIcon: TBitmap);
     procedure ChangeIcon(const iName, iHint: String);
-    procedure SetLButtonAsRButton(const iEnabled: Boolean);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const iEnabled: Boolean);
+    function GetOnBeginPopup: TNotifyEvent;
+    procedure SetOnBeginPopup(const iEvent: TNotifyEvent);
+    function GetOnEndPopup: TNotifyEvent;
+    procedure SetOnEndPopup(const iEvent: TNotifyEvent);
+    function GetLButtonPopup: Boolean;
+    procedure SetLButtonPopup(const iValue: Boolean);
+
+    property LButtonPopup: Boolean read GetLButtonPopup write SetLButtonPopup;
+    property OnBeginPopup: TNotifyEvent
+      read GetOnBeginPopup write SetOnBeginPopup;
+    property OnEndPopup: TNotifyEvent
+      read GetOnEndPopup write SetOnEndPopup;
   end;
 
   ITrayIconFactory = interface(IInterface)

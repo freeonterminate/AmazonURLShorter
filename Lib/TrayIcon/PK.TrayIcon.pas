@@ -22,7 +22,8 @@
  *   procedure TForm1.FormCreate(Sender: TObject);
  *   begin
  *     FTray := TTrayIcon.Create;
- *     FTray.AddMenu('Foo', FooClick);    // Right Click Menu
+ *     FTray.AddMenu('Foo', FooClick);    // Right Click Menu (Deprecated)
+ *     FTray.AssignPopupMenu(PopupMenu1); // Right Click Menu
  *     FTray.RegisterIcon('Bar', BarBmp); // BarBmp is TBitmap Instance
  *     FTray.RegisterOnClick(TrayClick);  // TrayIcon Clicked Event (Win Only)
  *     FTray.Apply('{FED0B67E-7C6E-41C3-A257-E4EB588E3E94}');
@@ -41,7 +42,6 @@ uses
   , System.Classes
   , FMX.Graphics
   , FMX.Menus
-  , FMX.Types
   , PK.TrayIcon.Default
   ;
 
@@ -49,6 +49,15 @@ type
   TTrayIcon = class
   private var
     FTrayIcon: ITrayIcon;
+  private
+    function GetOnBeginPopup: TNotifyEvent;
+    procedure SetOnBeginPopup(const iEvent: TNotifyEvent);
+    function GetOnEndPopup: TNotifyEvent;
+    procedure SetOnEndPopup(const iEvent: TNotifyEvent);
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const iEnabled: Boolean);
+    function GetLButtonPopup: Boolean;
+    procedure SetLButtonPopup(const iValue: Boolean);
   public
     constructor Create; reintroduce;
     destructor Destroy; override;
@@ -56,16 +65,18 @@ type
     procedure Apply(const iGUIDString: String); overload;
     procedure Apply; overload;
     procedure AssignPopupMenu(const iPopupMenu: TPopupMenu);
-    procedure AddMenu(
-      const iText: String;
-      const iData: Pointer;
-      const iEvent: TNotifyEvent);
+    procedure AddMenu(const iText: String; const iEvent: TNotifyEvent);
+      deprecated 'Insted AssignPopupMenu';
     procedure EnableMenu(const iText: String; const iEnabled: Boolean);
-    procedure ClearMenus;
-    procedure RegisterOnClick(const iEvent: TMouseEvent);
+      deprecated 'Insted AssignPopupMenu';
+    procedure RegisterOnClick(const iEvent: TNotifyEvent);
     procedure RegisterIcon(const iName: String; const iIcon: TBitmap);
     procedure ChangeIcon(const iName, iHint: String);
-    procedure SetLButtonAsRButton(const iEnabled: Boolean);
+    property Enabled: Boolean read GetEnabled write SetEnabled;
+    property LButtonPopup: Boolean read GetLButtonPopup write SetLButtonPopup;
+    property OnBeginPopup: TNotifyEvent
+      read GetOnBeginPopup write SetOnBeginPopup;
+    property OnEndPopup: TNotifyEvent read GetOnEndPopup write SetOnEndPopup;
   end;
 
 implementation
@@ -82,13 +93,12 @@ uses
 
 { TTrayIcon }
 
-procedure TTrayIcon.AddMenu(
-  const iText: String;
-  const iData: Pointer;
-  const iEvent: TNotifyEvent);
+procedure TTrayIcon.AddMenu(const iText: String; const iEvent: TNotifyEvent);
 begin
+  {$WARNINGS OFF}
   if FTrayIcon <> nil then
-    FTrayIcon.AddMenu(iText, iData, iEvent);
+    FTrayIcon.AddMenu(iText, iEvent);
+  {$WARNINGS ON}
 end;
 
 procedure TTrayIcon.Apply(const iGUID: TGUID);
@@ -110,30 +120,14 @@ end;
 
 procedure TTrayIcon.AssignPopupMenu(const iPopupMenu: TPopupMenu);
 begin
-  ClearMenus;
-
-  for var i := 0 to iPopupMenu.ItemsCount - 1 do
-  begin
-    var Item := iPopupMenu.Items[i];
-    if not Item.Visible then
-      Continue;
-
-    AddMenu(Item.Text, Item, Item.OnClick);
-    if not Item.Enabled then
-      EnableMenu(Item.Text, False);
-  end;
+  if FTrayIcon <> nil then
+    FTrayIcon.AssignPopupMenu(iPopupMenu);
 end;
 
 procedure TTrayIcon.ChangeIcon(const iName, iHint: String);
 begin
   if FTrayIcon <> nil then
     FTrayIcon.ChangeIcon(iName, iHint);
-end;
-
-procedure TTrayIcon.ClearMenus;
-begin
-  if FTrayIcon <> nil then
-    FTrayIcon.ClearMenus;
 end;
 
 constructor TTrayIcon.Create;
@@ -162,8 +156,42 @@ end;
 
 procedure TTrayIcon.EnableMenu(const iText: String; const iEnabled: Boolean);
 begin
+  {$WARNINGS OFF}
   if FTrayIcon <> nil then
     FTrayIcon.EnableMenu(iText, iEnabled);
+  {$WARNINGS ON}
+end;
+
+function TTrayIcon.GetEnabled: Boolean;
+begin
+  if FTrayIcon = nil then
+    Result := False
+  else
+    Result := FTrayIcon.GetEnabled;
+end;
+
+function TTrayIcon.GetLButtonPopup: Boolean;
+begin
+  if FTrayIcon = nil then
+    Result := False
+  else
+    Result := FTrayIcon.GetLButtonPopup;
+end;
+
+function TTrayIcon.GetOnBeginPopup: TNotifyEvent;
+begin
+  if FTrayIcon = nil then
+    Result := nil
+  else
+    Result := FTrayIcon.OnBeginPopup;
+end;
+
+function TTrayIcon.GetOnEndPopup: TNotifyEvent;
+begin
+  if FTrayIcon = nil then
+    Result := nil
+  else
+    Result := FTrayIcon.OnEndPopup;
 end;
 
 procedure TTrayIcon.RegisterIcon(const iName: String; const iIcon: TBitmap);
@@ -172,16 +200,34 @@ begin
     FTrayIcon.RegisterIcon(iName, iIcon);
 end;
 
-procedure TTrayIcon.RegisterOnClick(const iEvent: TMouseEvent);
+procedure TTrayIcon.RegisterOnClick(const iEvent: TNotifyEvent);
 begin
   if FTrayIcon <> nil then
     FTrayIcon.RegisterOnClick(iEvent);
 end;
 
-procedure TTrayIcon.SetLButtonAsRButton(const iEnabled: Boolean);
+procedure TTrayIcon.SetEnabled(const iEnabled: Boolean);
 begin
   if FTrayIcon <> nil then
-    FTrayIcon.SetLButtonAsRButton(iEnabled);
+    FTrayIcon.SetEnabled(iEnabled);
+end;
+
+procedure TTrayIcon.SetLButtonPopup(const iValue: Boolean);
+begin
+  if FTrayIcon <> nil then
+    FTrayIcon.SetLButtonPopup(iValue);
+end;
+
+procedure TTrayIcon.SetOnBeginPopup(const iEvent: TNotifyEvent);
+begin
+  if FTrayIcon <> nil then
+    FTrayIcon.OnBeginPopup := iEvent;
+end;
+
+procedure TTrayIcon.SetOnEndPopup(const iEvent: TNotifyEvent);
+begin
+  if FTrayIcon <> nil then
+    FTrayIcon.OnEndPopup := iEvent;
 end;
 
 end.

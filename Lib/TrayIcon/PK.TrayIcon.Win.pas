@@ -22,14 +22,9 @@
  *   procedure TForm1.FormCreate(Sender: TObject);
  *   begin
  *     FTray := TTrayIcon.Create;
- *
- *     // Right Click Menu
- *     // No.2 Param is UserData. Event Handlers Sender is No.2 param.
- *     FTray.AddMenu('Foo', nil, FooClick);
- *
+ *     FTray.AddMenu('Foo', FooClick);    // Right Click Menu
  *     FTray.RegisterIcon('Bar', BarBmp); // BarBmp is TBitmap Instance
  *     FTray.RegisterOnClick(TrayClick);  // TrayIcon Clicked Event (Win Only)
- *
  *     FTray.Apply;
  *   end;
  *
@@ -61,12 +56,12 @@ uses
   , System.UITypes
   , FMX.Forms
   , FMX.Graphics
-  , FMX.Helpers.Win
   , FMX.Menus
   , FMX.Platform
   , FMX.Platform.Win
   , FMX.Surfaces
   , FMX.Types
+  , PK.GUI.NativePopupMenu.Win
   , PK.TrayIcon.Default
   ;
 
@@ -77,7 +72,6 @@ type
     TMenuRec = record
       FID: Integer;
       FText: String;
-      FData: Pointer;
       FHandler: TNotifyEvent;
     end;
     TMenuItemArray = TArray<TMenuRec>;
@@ -88,14 +82,17 @@ type
     FIcon: HICON;
     FHint: String;
     FGUID: TGUID;
-    FLButtonAsRButton: Boolean;
     FVisible: Boolean;
+    FEnabled: Boolean;
+    FLButtonPopup: Boolean;
     FMenu: HMENU;
+    FPopupMenu: TPopupMenu;
     FMenuItems: TMenuItemArray;
     FIcons: TIconDic;
     FTaskbarRestart: NativeUInt;
     FPopuping: Boolean;
-    FOnClick: TMouseEvent;
+    FLButtonUpTime: UInt64;
+    FOnClick: TNotifyEvent;
     FOnBeginPopup: TNotifyEvent;
     FOnEndPopup: TNotifyEvent;
   private
@@ -108,24 +105,30 @@ type
     procedure WndProc(var Msg: TMessage); virtual;
     procedure TaskTrayMessage(var ioMsg: TMessage); virtual;
     procedure SetVisible(const Value: Boolean); virtual;
+    { ITrayIcon }
+    function GetEnabled: Boolean;
+    procedure SetEnabled(const iEnabled: Boolean);
+    function GetLButtonPopup: Boolean;
+    procedure SetLButtonPopup(const iValue: Boolean);
+    function GetOnBeginPopup: TNotifyEvent;
+    procedure SetOnBeginPopup(const iEvent: TNotifyEvent);
+    function GetOnEndPopup: TNotifyEvent;
+    procedure SetOnEndPopup(const iEvent: TNotifyEvent);
   public
     constructor Create; reintroduce;
     destructor Destroy; override;
     procedure ApplyGUID(const iGUID: TGUID);
     procedure Apply;
-    procedure AddMenu(
-      const iText: String;
-      const iData: Pointer;
-      const iEvent: TNotifyEvent);
+    procedure AssignPopupMenu(const iPopup: TPopupMenu);
+    procedure AddMenu(const iText: String; const iEvent: TNotifyEvent);
     procedure EnableMenu(const iText: String; const iEnabled: Boolean);
-    procedure ClearMenus;
-    procedure RegisterOnClick(const iEvent: TMouseEvent);
+    procedure RegisterOnClick(const iEvent: TNotifyEvent);
     procedure RegisterIcon(
       const iName: String;
       const iIcon: FMX.Graphics.TBitmap);
     procedure ChangeIcon(const iName, iHint: String);
-    procedure SetLButtonAsRButton(const iEnabled: Boolean);
     property Visible: Boolean read FVisible write SetVisible;
+    property Enabled: Boolean read GetEnabled write SetEnabled;
     property Popuping: Boolean read FPopuping;
     property OnBeginPopup: TNotifyEvent read FOnBeginPopup write FOnBeginPopup;
     property OnEndPopup: TNotifyEvent read FOnEndPopup write FOnEndPopup;
@@ -145,10 +148,7 @@ end;
 
 { TTrayIconWin }
 
-procedure TTrayIconWin.AddMenu(
-  const iText: String;
-  const iData: Pointer;
-  const iEvent: TNotifyEvent);
+procedure TTrayIconWin.AddMenu(const iText: String; const iEvent: TNotifyEvent);
 begin
   var Len := Length(FMenuItems);
   SetLength(FMenuItems, Len + 1);
@@ -157,13 +157,13 @@ begin
   begin
     FID := Len + 1;
     FText := iText;
-    FData := iData;
     FHandler := iEvent;
 
+    var Flag := MF_STRING or MF_ENABLED;
     if FText = '-' then
-      AppendMenu(FMenu, MF_SEPARATOR, FID, nil)
-    else
-      AppendMenu(FMenu, MF_STRING or MF_ENABLED, FID, PChar(FText));
+      Flag := MF_SEPARATOR;
+
+    AppendMenu(FMenu, Flag, FID, PChar(FText));
   end;
 end;
 
@@ -176,6 +176,11 @@ procedure TTrayIconWin.ApplyGUID(const iGUID: TGUID);
 begin
   FGUID := iGUID;
   SetVisible(True);
+end;
+
+procedure TTrayIconWin.AssignPopupMenu(const iPopup: TPopupMenu);
+begin
+  FPopupMenu := iPopup;
 end;
 
 procedure TTrayIconWin.ChangeIcon(const iName, iHint: String);
@@ -207,14 +212,6 @@ begin
   FIcons.Clear;
 end;
 
-procedure TTrayIconWin.ClearMenus;
-begin
-  for var i := Low(FMenuItems) to High(FMenuItems) do
-    DeleteMenu(FMenu, FMenuItems[i].FID, MF_BYCOMMAND);
-
-  SetLength(FMenuItems, 0);
-end;
-
 constructor TTrayIconWin.Create;
 begin
   inherited Create;
@@ -223,6 +220,9 @@ begin
   FMenu := CreatePopupMenu;
   FHint := Application.Title;
   FHandle := AllocateHWnd(WndProc);
+  FTaskbarRestart := RegisterWindowMessage('TaskbarCreated'); // DO NOT LOCALIZE
+
+  FEnabled := True;
 end;
 
 function TTrayIconWin.CreateIcon(const iIcon: TBitmap): HICON;
@@ -249,32 +249,30 @@ function TTrayIconWin.CreateIcon(const iIcon: TBitmap): HICON;
       end;
 
       var DIBW: NativeUInt := (W shl 2) and $fffffffc; // DIB Word 境界に合せる
-      var Pixels := PByteArray(AllocMem(DIBW * H));
-      try
-        var Data: TBitmapData;
-        iBmp.Map(TMapAccess.Read, Data);
-        try
-          for var Y := 0 to H - 1 do
-            Move(Data.GetScanline(Y)^, Pixels[Y * DIBW], W * 4);
-        finally
-          iBmp.Unmap(Data);
-        end;
+      var Pixels: TArray<Byte>;
+      SetLength(Pixels, DIBW * H);
 
-        var DC := GetDC(0); // 0 = ScreenDC
-        try
-          Result :=
-            CreateDIBitmap(
-              DC,
-              Info^.bmiHeader,
-              CBM_INIT,
-              Pixels,
-              Info^,
-              DIB_RGB_COLORS);
-        finally
-          ReleaseDC(0, DC);
-        end;
+      var Data: TBitmapData;
+      iBmp.Map(TMapAccess.Read, Data);
+      try
+        for var Y := 0 to H - 1 do
+          Move(Data.GetScanline(Y)^, Pixels[Y * DIBW], W * 4);
       finally
-        FreeMem(Pixels);
+        iBmp.Unmap(Data);
+      end;
+
+      var DC := GetDC(0); // 0 = ScreenDC
+      try
+        Result :=
+          CreateDIBitmap(
+            DC,
+            Info^.bmiHeader,
+            CBM_INIT,
+            Pixels,
+            Info^,
+            DIB_RGB_COLORS);
+      finally
+        ReleaseDC(0, DC);
       end;
     finally
       FreeMem(Info);
@@ -334,6 +332,8 @@ destructor TTrayIconWin.Destroy;
 begin
   ClearIcon;
 
+  DeallocateHWnd(FHandle);
+
   DestroyMenu(FMenu);
   FIcons.Free;
 
@@ -363,6 +363,26 @@ begin
       Result := Item;
       Break;
     end
+end;
+
+function TTrayIconWin.GetEnabled: Boolean;
+begin
+  Result := FEnabled;
+end;
+
+function TTrayIconWin.GetLButtonPopup: Boolean;
+begin
+  Result := FLButtonPopup;
+end;
+
+function TTrayIconWin.GetOnBeginPopup: TNotifyEvent;
+begin
+  Result := FOnBeginPopup;
+end;
+
+function TTrayIconWin.GetOnEndPopup: TNotifyEvent;
+begin
+  Result := FOnEndPopup;
 end;
 
 procedure TTrayIconWin.InitNID(var ioNID: TNotifyIconData);
@@ -404,14 +424,29 @@ begin
   end;
 end;
 
-procedure TTrayIconWin.RegisterOnClick(const iEvent: TMouseEvent);
+procedure TTrayIconWin.RegisterOnClick(const iEvent: TNotifyEvent);
 begin
   FOnClick := iEvent;
 end;
 
-procedure TTrayIconWin.SetLButtonAsRButton(const iEnabled: Boolean);
+procedure TTrayIconWin.SetEnabled(const iEnabled: Boolean);
 begin
-  FLButtonAsRButton := iEnabled;
+  FEnabled := iEnabled;
+end;
+
+procedure TTrayIconWin.SetLButtonPopup(const iValue: Boolean);
+begin
+  FLButtonPopup := iValue;
+end;
+
+procedure TTrayIconWin.SetOnBeginPopup(const iEvent: TNotifyEvent);
+begin
+  FOnBeginPopup := iEvent;
+end;
+
+procedure TTrayIconWin.SetOnEndPopup(const iEvent: TNotifyEvent);
+begin
+  FOnEndPopup := iEvent;
 end;
 
 procedure TTrayIconWin.SetVisible(const Value: Boolean);
@@ -436,40 +471,31 @@ begin
     if (FVisible) then
       Shell_NotifyICON(NIM_ADD, @NID)
     else
+    begin
+      NID.uFlags := NID.uFlags and not NIF_GUID;
       Shell_NotifyICON(NIM_DELETE, @NID);
+    end;
   except
   end;
 end;
 
 procedure TTrayIconWin.TaskTrayMessage(var ioMsg: TMessage);
-var
-  tmpPos: TPoint;
-
-  procedure CallOnClick;
-  begin
-    if Assigned(FOnClick) then
-    begin
-      FOnClick(
-        Self,
-        TMouseButton.mbLeft,
-        MouseToShiftState(ioMsg.WParam),
-        tmpPos.X,
-        tmpPos.Y);
-    end;
-  end;
 
   procedure Popup;
+  var
+    tmpPos: TPoint;
   begin
-    if Length(FMenuItems) > 0 then
-    begin
-      FPopuping := True;
-      try
-        SetForegroundWindow(FHandle);
+    FPopuping := True;
+    try
+      SetForegroundWindow(FHandle);
+      GetCursorPos(tmpPos);
 
-        if (Assigned(FOnBeginPopup)) then
-          FOnBeginPopup(Self);
+      if (Assigned(FOnBeginPopup)) then
+        FOnBeginPopup(Self);
 
-        var Cmd :=
+      var Cmd := -1;
+      if FPopupMenu = nil then
+        Cmd :=
           NativeInt(
             TrackPopupMenu(
               FMenu,
@@ -484,20 +510,21 @@ var
               FHandle,
               nil
             )
-          );
+          )
+      else
+        TNativePopupMenuWin.Popup(FHandle, FPopupMenu);
 
-        if (Assigned(FOnEndPopup)) then
-          FOnEndPopup(Self);
+      if (Assigned(FOnEndPopup)) then
+        FOnEndPopup(Self);
 
-        for var Item in FMenuItems do
-          if (Item.FID = Cmd) and Assigned(Item.FHandler) then
-          begin
-            Item.FHandler(Item.FData);
-            Break;
-          end;
-      finally
-        FPopuping := False;
-      end;
+      for var Item in FMenuItems do
+        if (Item.FID = Cmd) and Assigned(Item.FHandler) then
+        begin
+          Item.FHandler(Self);
+          Break;
+        end;
+    finally
+      FPopuping := False;
     end;
   end;
 
@@ -505,16 +532,20 @@ begin
   case ioMsg.lParam of
     WM_LBUTTONUP:
     begin
-      GetCursorPos(tmpPos);
-      CallOnClick;
-      if FLButtonAsRButton then
+      var Diff := GetTickCount64 - FLButtonUpTime;
+
+      if Assigned(FOnClick) and (Diff > GetDoubleClickTime) then
+      begin
+        FLButtonUpTime := GetTickCount64;
+        FOnClick(Self);
+      end;
+
+      if FLButtonPopup then
         Popup;
     end;
 
     WM_RBUTTONUP:
     begin
-      GetCursorPos(tmpPos);
-      CallOnClick;
       Popup;
     end;
   end;
@@ -530,12 +561,8 @@ procedure TTrayIconWin.WndProc(var Msg: TMessage);
 begin
   case Msg.Msg of
     IM_NOTIFY:
-      TaskTrayMessage(Msg);
-
-    WM_CREATE:
-    begin
-      FTaskbarRestart := RegisterWindowMessage('TaskbarCreated');
-    end;
+      if FEnabled then
+        TaskTrayMessage(Msg);
 
     WM_ENDSESSION:
       SetVisible(False);

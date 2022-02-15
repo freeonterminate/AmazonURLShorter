@@ -246,7 +246,7 @@ begin
   FFormUtils.HideTaskbar;
 
   FTrayIcon := TTrayIcon.Create;
-  FTrayIcon.SetLButtonAsRButton(True);
+  FTrayIcon.LButtonPopup := True;
 
   var Bmp := TBitmap.Create;
   try
@@ -263,8 +263,14 @@ begin
 
   FTrayIcon.Apply;
 
-  FWatcher := TClipboardWatcher.Create;
-  FWatcher.OnChange := ClipboardWatcherChangeHandler;
+  TThread.ForceQueue(
+    nil,
+    procedure
+    begin
+      FWatcher := TClipboardWatcher.Create;
+      FWatcher.OnChange := ClipboardWatcherChangeHandler;
+    end
+  );
 
   menuInfo.Visible := TIniManager.Current.Debug;
 
@@ -379,6 +385,8 @@ begin
   AItem.TagString := AURL;
   AItem.Hint := Title;
   UpdateTrayMenu;
+
+  TIniManager.Current.Save;
 end;
 
 procedure TfmmMain.timerHideTimer(Sender: TObject);
